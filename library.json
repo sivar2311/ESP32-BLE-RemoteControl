@@ -1,0 +1,32 @@
+{
+  "name": "ESP32-BLE-RemoteControl",
+  "keywords": "blueooth, ble, remote control",
+  "description": "This library allows you to send and receive simple command messages via Bluetooth Low Energy.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sivar2311/esp32-ble-remotecontrol"
+  },
+  "authors": [
+    {
+      "name": "Sivar2311",
+      "email": "sivar2311@gmail.com",
+      "maintainer": true
+    }
+  ],
+  "version": "0.0.1",
+  "frameworks": "arduino",
+  "platforms": [
+    "espressif32"
+  ],
+  "dependencies":[
+    {
+      "name": "NimBLE-Arduino",
+      "platforms":["espressif32"]
+    }
+  ],
+  "examples":[
+    "examples/*/*.ino",
+    "examples/*/*/*.ino"
+  ],
+  "license": "CC-BY-SA-4.0"
+}
