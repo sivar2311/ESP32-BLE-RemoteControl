@@ -1,5 +1,5 @@
 [![Build](https://github.com/sivar2311/ESP32-BLE-RemoteControl/actions/workflows/build.yml/badge.svg)](https://github.com/sivar2311/ESP32-BLE-RemoteControl/actions/workflows/build.yml)
-
+[![Release](https://img.shields.io/github/v/release/sivar2311/ESP32-BLE-RemoteControl)](https://github.com/sivar2311/ESP32-BLE-RemoteControl/releases)
 # ESP32-BLE-Remote-Control
 
 Diese Bibliothek erlaubt es Ihnen einfache Kommando-Nachrichten über Bluetooth Low Energy zu senden und zu empfangen.
