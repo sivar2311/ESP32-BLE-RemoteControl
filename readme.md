@@ -20,24 +20,41 @@ A receiver can (theoretically) manage up to 65536 different remote controls and 
 
 # Installation
 
-*ToDo...*
+Currently this library is neither registered with Arduino nor PlatformIO and therefore has to be installed / included manually. 
+
+### Arduino IDE
+
+Download the repository as a ZIP file.
+Then select `Sketch` / `Include Library` / `Add .ZIP library...` in the ArduinoIDE menu and select the downloaded ZIP file.
+
+### PlatformIO
+
+Add the following to your `platformio.ini`:
+```ini
+lib_deps = 
+  https://github.com/sivar2311/ESP32-BLE-RemoteControl.git
+``` 
+
+## Dependencies
+
+This library depends on [NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino).
 
 # Use
 
-# Remote control
+## Remote control information
 
 Each remote control is managed with the structure `ble_remote_control_info_t`.
 This contains the ID number of the remote control, the AES key and the rolling code.
 It provides two constructors to simplify the instantiation of a remote control.
 
-## Instantiation of a remote control
+### Instancing a remote control information
 
 Default:
 
 ```C++
 
 ble_remote_control_info_t remote (
-/* id */ 0x0001,                                                                                       
+/* id      */ 0x0001,                                                                                       
 /* aes-key */ {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00A, 0x00B, 0x0C, 0x0D, 0x0E, 0x0F}  
 );
 ```
@@ -46,8 +63,8 @@ With pre-assigned rolling-code:
 
 ```C++
 ble_remote_control_info_t remote (
-/* id */ 0x0001,                                                                                       
-/* aes-key */ {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00A, 0x00B, 0x0C, 0x0D, 0x0E, 0x0F}, 
+/* id           */ 0x0001,                                                                                       
+/* aes-key      */ {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x00A, 0x00B, 0x0C, 0x0D, 0x0E, 0x0F}, 
 /* rolling-code */ 0x1234
 );
 ```
@@ -56,17 +73,17 @@ ble_remote_control_info_t remote (
 This can be useful if the remote control is to be operated in a very power-saving way and is switched off in the meantime. 
 The rolling code can, for example, be stored in the EEPROM, NVS or in a file before switching off and reloaded from it after switching on.
 
-# Sender
+## Sender
 
 The sending of commands is done by the class 'BLERemoteControlSender'.
 
-## Instantiation of the sender
+### Instancing the sender
 
 ```C++
 BLERemoteControlSender sender;
 ```
 
-## Sending commands
+### Sending commands
 
 The function `send_command` is used to send commands.
 The function is passed the command code to be sent of type `uint16_t` in the first parameter.
@@ -75,22 +92,22 @@ In the second parameter, a ***pointer*** to the remote control of type `ble_remo
 Example: Sending the command code "0x1234" with the previously created remote control
 
 ```C++
-  sender.send_command(0x1234, &remote);
+sender.send_command(0x1234, &remote);
 ```
 
 Example: [sender.ino](/examples/transmitter/transmitter.ino)
 
-# Receiver
+## Receiver
 
 Receiving the commands is done by the class 'BLERemoteControlReceiver'.
 
-## Instantiation of the receiver
+### Instancing the receiver
 
 ```C++
 BLERemoteControlReceiver receiver;
 ```
 
-## Adding remote controls
+### Adding remote controls
 
 All (accepted) remote controls must first be added to the receiver.
 The function `add_remote_control` is used for this purpose. 
@@ -115,7 +132,7 @@ receiver.add_remote_control(&remote_4);
 Example: [MultiReceiver.ino](/examples/Receiver/MultiReceiver/MultiReceiver.ino)
 
 
-## Handling of received commands
+### Handling of received commands
 
 To process commands, a callback function is called when remote control commands are received from the receiver.
 The callback function contains as a parameter a ***pointer*** of type `ble_remote_command_info_t` which contains the command and a ***pointer*** to the remote control.
@@ -129,19 +146,19 @@ void handle_command(ble_remote_command_info_t* command_info) {
 }
 ```
 
-## Assign the callback function for command handling
+### Assign the callback function for command handling
 
 ```C++
 receiver.on_command(handle_command);
 ```
 
-## Start the receiver
+### Start the receiver
 
 ```C++
 receiver.begin();
 ```
 
-## Removing remote controls
+### Removing remote controls
 
 A remote control can be removed (e.g. if it has been lost).
 The function `remove_remote_control` is used for this purpose.
@@ -151,7 +168,7 @@ The function receives as parameter a ***pointer*** to the remote control of type
 receiver.remove_remote_control(&remote_3);
 ```
 
-## Synchronising a remote control
+### Synchronising a remote control
 
 The receiver class allows the synchronisation of remote controls. This is necessary if the rolling code of the remote control is smaller than that of the receiver. This can happen, for example, by restarting the remote control without saving and reloading the rolling code (in the remote control of the sender).
 

@@ -20,17 +20,34 @@ Ein Empfänger kann (theoretisch) bis zu 65536 verschiedene Fernbedienungen verw
 
 # Installation
 
-*ToDo...*
+Zur Zeit ist diese Bibliothek weder bei Arduino noch PlatformIO registriert und muss daher manuell installiert / eingebunden werden. 
+
+### Arduino IDE
+
+Laden Sie das Repository als ZIP-Datei herunter.
+Wählen Sie dann in der ArduinoIDE im Menü `Sketch` / `Bibliothek einbinden` / `.ZIP-Bibliothek hinzufügen...` und wählen Sie die heruntergeladene ZIP-Date aus.
+
+### PlatformIO
+
+Fügen Sie ihrer `platformio.ini` folgendes hinzu:
+```ini
+lib_deps = 
+  https://github.com/sivar2311/ESP32-BLE-RemoteControl.git
+``` 
+
+## Abhängigkeiten
+
+Diese Bibliothek ist Abhängig von [NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino).
 
 # Benutzung
 
-# Fernbedienung
+## Fernbedienungsinformation
 
 Jede Fernbedienung wird mit der Struktur `ble_remote_control_info_t` verwaltet.
 Diese enthält die ID-Nummer der Fernbedienung, den AES-Schlüssel und den Rolling-Code.
 Sie stellt zwei Konstruktoren bereit um die Instanziierung einer Fernbedienung zu vereinfachen.
 
-## Instanziierung einer Fernbedienung
+### Instanziierung einer Fernbedienung
 
 Standard:
 
@@ -56,17 +73,17 @@ ble_remote_control_info_t remote (
 Dies kann nützlich sein, wenn die Fernbedienung sehr stromsparend betrieben werden soll und zwischenzeitlich ausgeschaltet wird. 
 Der Rolling-Code kann z. B.  vor dem Ausschalten im EEPROM, NVS oder in einer Datei gespeichert, und nach dem Einschalten daraus wieder geladen werden.
 
-# Sender
+## Sender
 
 Das Senden der Befehle wird von der Klasse `BLERemoteControlSender` vorgenommen.
 
-## Instanziierung des Senders
+### Instanzierung des Senders
 
 ```C++
 BLERemoteControlSender sender;
 ```
 
-## Senden von Befehlen
+### Senden von Befehlen
 
 Zum Senden von Befehlen wird die Funktion `send_command` verwendet.
 Der Funktion wird im ersten Parameter der zu sendende Befehls-Code vom typ `uint16_t` übergeben.
@@ -75,22 +92,22 @@ Im zweiten Parameter wird ein ***Zeiger*** auf die Fernbedienung vom Typ `ble_re
 Beispiel: Senden des Befehls-Code "0x1234" mit der zuvor angelegten Fernbedienung
 
 ```C++
-  sender.send_command(0x1234, &remote);
+sender.send_command(0x1234, &remote);
 ```
 
 Beispiel: [Sender.ino](/examples/Sender/Sender.ino)
 
-# Empfänger
+## Empfänger
 
 Der Empfang der Befehle wird von der Klasse `BLERemoteControlReceiver` vorgenommen.
 
-## Instanziierung des Empfängers
+### Instanzierung des Empfängers
 
 ```C++
 BLERemoteControlReceiver receiver;
 ```
 
-## Hinzufügen von Fernbedienungen
+### Hinzufügen von Fernbedienungen
 
 Dem Empfänger müssen zunächst alle (akzeptierten) Fernbedienungen hinzugefügt werden.
 Dazu wird die Funktion `add_remote_control` verwendet. 
@@ -115,7 +132,7 @@ receiver.add_remote_control(&remote_4);
 Beispiel: [MultiReceiver.ino](/examples/Receiver/MultiReceiver/MultiReceiver.ino)
 
 
-## Behandeln von empfangenen Befehlen
+### Behandeln von empfangenen Befehlen
 
 Zur Verarbeitung von Befehlen wird beim Empfang von Fernbedienungs-Befehlen vom Empfänger eine Rückruffunktion aufgerufen.
 Die Rückruffunktion enthält als Parameter einen ***Zeiger*** vom Typ `ble_remote_command_info_t` welche den Befehl und einen ***Zeiger*** auf die Fernbedienung enthält.
@@ -129,19 +146,19 @@ void handle_command(ble_remote_command_info_t* command_info) {
 }
 ```
 
-## Zuweisen der Rückruf-Funktion für die Befehlsbehandlung
+### Zuweisen der Rückruf-Funktion für die Befehlsbehandlung
 
 ```C++
 receiver.on_command(handle_command);
 ```
 
-## Starten des Empfängers
+### Starten des Empfängers
 
 ```C++
 receiver.begin();
 ```
 
-## Entfernen von Fernbedienungen
+### Entfernen von Fernbedienungen
 
 Eine Fernbedienung kann entfernt werden (z. B. wenn diese verloren wurde).
 Dazu wird die Funktion `remove_remote_control` verwendet.
@@ -151,7 +168,7 @@ Die Funktion erhält als Parameter ein ***Zeiger*** auf die Fernbedienung vom Ty
 receiver.remove_remote_control(&remote_3);
 ```
 
-## Synchronisieren einer Fernbedienung
+### Synchronisieren einer Fernbedienung
 
 Die Empfängerklasse erlaubt das Synchronisieren von Fernbedienungen. Dies ist Notwendig wenn der Rolling-Code der Fernbedienung kleiner als der des Empfängers ist. Das kann z.B. durch einen Neustart der Fernbedienung passieren, ohne dass der Rolling-Code (in der Fernbedienung des Senders) gespeichert und wieder geladen wurde.
 
@@ -179,4 +196,3 @@ void print_sync_info(ble_remote_control_info_t* remote_control) {
 ```C++
 receiver.on_sync(print_sync_info);
 ```
-
