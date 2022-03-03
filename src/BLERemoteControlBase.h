@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "BLERemoteControlInfo.h"
-#include "hwcrypto/aes.h"
+#include <mbedtls/aes.h>
 
 struct __attribute__((packed)) BLERemoteControlMessage {
     uint16_t remote_id;
