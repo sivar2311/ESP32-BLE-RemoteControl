@@ -14,7 +14,7 @@ struct __attribute__((packed)) BLERemoteControlMessage {
     uint16_t command;
     uint32_t rolling_code;
     uint16_t nonce;
-    uint8_t  reserved[8];
+    uint8_t  reserved[6];
 };
 
 struct __attribute__((packed)) BLEManufacturerData {
