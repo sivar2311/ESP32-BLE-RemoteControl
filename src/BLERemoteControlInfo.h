@@ -6,7 +6,7 @@
 
 using aes_key_t = std::vector<uint8_t>;
 
-typedef struct ble_remote_control_info_t {
+struct ble_remote_control_info_t {
   public:
     ble_remote_control_info_t(uint16_t id, aes_key_t aes_key);
     ble_remote_control_info_t(uint16_t id, aes_key_t aes_key, uint32_t rolling_code);
