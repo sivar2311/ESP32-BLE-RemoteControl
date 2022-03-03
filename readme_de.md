@@ -4,7 +4,7 @@
 
 Diese Bibliothek erlaubt es Ihnen einfache Kommando-Nachrichten über Bluetooth Low Energy zu senden und zu empfangen.
 
-# Features:
+# Besonderheiten:
 
 ## Verbindungslos
 
