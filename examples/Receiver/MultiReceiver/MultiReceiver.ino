@@ -39,7 +39,7 @@ void setup_led() {
 }
 
 void setup_receiver() {
-    receiver.on_receive(handle_command);
+    receiver.on_command(handle_command);
 
     receiver.add_remote_control(&remote_1);
     receiver.add_remote_control(&remote_2);

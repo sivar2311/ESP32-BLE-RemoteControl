@@ -23,10 +23,10 @@ class BLERemoteControlReceiver : public BLERemoteControlBaseClass, public NimBLE
     void add_remote_control(ble_remote_control_info_t* remote_control);
     void remove_remote_control(ble_remote_control_info_t* remote_control);
 
-    void on_receive(ble_receive_callback_t callback);
+    void on_command(ble_receive_callback_t callback);
 
     void sync_remotecontrol();
-    void on_sync_done(ble_remote_sync_callback_t callback);
+    void on_sync(ble_remote_sync_callback_t callback);
 
   protected:
     void                       onResult(NimBLEAdvertisedDevice* advertised_device);
@@ -72,7 +72,7 @@ void BLERemoteControlReceiver::remove_remote_control(ble_remote_control_info_t* 
     remote_controls.erase(std::remove(remote_controls.begin(), remote_controls.end(), remote_control), remote_controls.end());
 }
 
-void BLERemoteControlReceiver::on_receive(ble_receive_callback_t callback) {
+void BLERemoteControlReceiver::on_command(ble_receive_callback_t callback) {
     receive_callback = callback;
 }
 
@@ -80,7 +80,7 @@ void BLERemoteControlReceiver::sync_remotecontrol() {
     _sync = true;
 }
 
-void BLERemoteControlReceiver::on_sync_done(ble_remote_sync_callback_t callback) {
+void BLERemoteControlReceiver::on_sync(ble_remote_sync_callback_t callback) {
     sync_done_callback = callback;
 }
 

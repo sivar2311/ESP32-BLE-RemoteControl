@@ -130,7 +130,7 @@ void handle_command(ble_remote_command_info_t* command_info) {
 ## Zuweisen der Rückruf-Funktion für die Befehlsbehandlung
 
 ```C++
-receiver.on_receive(handle_command);
+receiver.on_command(handle_command);
 ```
 
 ## Starten des Empfängers
@@ -175,6 +175,6 @@ void print_sync_info(ble_remote_control_info_t* remote_control) {
 ### Zuweisen der Synchronisations Rückruf-Funktion
 
 ```C++
-receiver.on_sync_done(print_sync_info);
+receiver.on_sync(print_sync_info);
 ```
 
