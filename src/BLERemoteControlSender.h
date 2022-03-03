@@ -20,7 +20,7 @@ void BLERemoteControlSender::begin() {
 }
 
 void BLERemoteControlSender::send_command(uint16_t command, ble_remote_control_info_t* remote_control) {
-    if (ble_advertising == false) return;
+    if (ble_advertising == nullptr) return;
 
     BLEManufacturerData man_data;
     man_data.company_id = 0xFFFF;
