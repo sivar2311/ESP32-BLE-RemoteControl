@@ -35,8 +35,7 @@ jobs:
         pip install --upgrade platformio
     - name: Step 6 - Install library dependencies
       run: |
-        pio lib --global install "bblanchon/ArduinoJson"
-        pio lib --global install "links2004/WebSockets"
+        pio lib --global install "h2zero/NimBLE-Arduino"
     - name: Step 7 - Run build test using PlatformIO
       run: pio ci --lib="." -b esp32dev
       env:
