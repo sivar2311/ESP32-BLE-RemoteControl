@@ -47,7 +47,6 @@ BLERemoteControlReceiver::BLERemoteControlReceiver() {}
 BLERemoteControlReceiver::~BLERemoteControlReceiver() {}
 
 void BLERemoteControlReceiver::begin() {
-    NimBLEDevice::setScanFilterMode(CONFIG_BTDM_SCAN_DUPL_TYPE_DATA);
     NimBLEDevice::setScanDuplicateCacheSize(10);
     NimBLEDevice::init("");
 
