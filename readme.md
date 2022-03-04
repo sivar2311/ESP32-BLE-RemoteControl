@@ -95,7 +95,7 @@ Example: Sending the command code "0x1234" with the previously created remote co
 sender.send_command(0x1234, &remote);
 ```
 
-Example: [sender.ino](/examples/transmitter/transmitter.ino)
+Example: [Sender.ino](/examples/Sender/Sender.ino)
 
 ## Receiver
 
