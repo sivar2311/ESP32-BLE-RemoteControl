@@ -33,5 +33,5 @@
 *The unencrypted ID is used to identify the remote control and find the corresponding AES key.*
 *After decrypting the message, the IDs are compared. If they match, the message is valid.*
 
-***Command***: *The command field can be used for either 4294967295 different commands or up to 32 simultaneous commands. The interpretation is left to the application / user.*
+***Command***: *The command field can be used for either 4,294,967,296 different commands or up to 32 simultaneous commands. The interpretation is left to the application / user.*
 
