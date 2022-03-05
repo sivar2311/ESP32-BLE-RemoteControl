@@ -8,7 +8,7 @@ class BLERemoteControlSender : public BLERemoteControlBaseClass {
   public:
     void begin();
 
-    void send_command(uint16_t command, ble_remote_control_info_t* remote_control);
+    void send_command(uint32_t command, ble_remote_control_info_t* remote_control);
 
   protected:
     NimBLEAdvertising* ble_advertising = nullptr;
@@ -19,7 +19,7 @@ void BLERemoteControlSender::begin() {
     ble_advertising = NimBLEDevice::getAdvertising();
 }
 
-void BLERemoteControlSender::send_command(uint16_t command, ble_remote_control_info_t* remote_control) {
+void BLERemoteControlSender::send_command(uint32_t command, ble_remote_control_info_t* remote_control) {
     if (ble_advertising == nullptr) return;
 
     BLEManufacturerData man_data;

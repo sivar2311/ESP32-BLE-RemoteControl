@@ -7,7 +7,7 @@
 #include "BLERemoteControlInfo.h"
 
 struct ble_remote_command_info_t {
-    uint16_t                   command;
+    uint32_t                   command;
     ble_remote_control_info_t* remote_control;
 };
 
