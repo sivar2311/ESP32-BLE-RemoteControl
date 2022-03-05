@@ -16,7 +16,7 @@ Die Nachrichten werden als Bluetooth Werbungspakete verschickt - es ist keine ak
 - Rolling-Code: Jede Nachricht ist mit einem Rolling-Code versehen um Wiederholungsangriffe zu unterbinden.
 
 ## Ein Empfänger - mehrere Sender
-Ein Empfänger kann (theoretisch) bis zu 65536 verschiedene Fernbedienungen verwalten und 65536 verschiedene Befehle verarbeiten.
+Ein Empfänger kann (theoretisch) bis zu 65536 verschiedene Fernbedienungen verwalten und 4.294.967.295 verschiedene oder 32 gleichzeitige Befehle verarbeiten (die Interpretation ist der Anwendung / dem Benutzer überlassen).
 
 # Installation
 
@@ -86,7 +86,7 @@ BLERemoteControlSender sender;
 ### Senden von Befehlen
 
 Zum Senden von Befehlen wird die Funktion `send_command` verwendet.
-Der Funktion wird im ersten Parameter der zu sendende Befehls-Code vom typ `uint16_t` übergeben.
+Der Funktion wird im ersten Parameter der zu sendende Befehls-Code vom typ `uint32_t` übergeben.
 Im zweiten Parameter wird ein ***Zeiger*** auf die Fernbedienung vom Typ `ble_remote_control_info_t` übergeben.
 
 Beispiel: Senden des Befehls-Code "0x1234" mit der zuvor angelegten Fernbedienung
