@@ -16,7 +16,7 @@ Messages are sent as Bluetooth advertisement packets - no active connection or p
 - Rolling code: Each message is provided with a rolling code to prevent replay attacks.
 
 ## One receiver - multiple senders
-A receiver can (theoretically) manage up to 65536 different remote controls and process 4,294,967,295 different or 32 simultaneous commands (the interpretation is left to the application / user).
+A receiver can (theoretically) manage up to 65,536 different remote controls and process 4,294,967,296 different or 32 simultaneous commands (the interpretation is left to the application / user).
 
 # Installation
 

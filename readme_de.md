@@ -16,7 +16,7 @@ Die Nachrichten werden als Bluetooth Werbungspakete verschickt - es ist keine ak
 - Rolling-Code: Jede Nachricht ist mit einem Rolling-Code versehen um Wiederholungsangriffe zu unterbinden.
 
 ## Ein Empfänger - mehrere Sender
-Ein Empfänger kann (theoretisch) bis zu 65536 verschiedene Fernbedienungen verwalten und 4.294.967.295 verschiedene oder 32 gleichzeitige Befehle verarbeiten (die Interpretation ist der Anwendung / dem Benutzer überlassen).
+Ein Empfänger kann (theoretisch) bis zu 65.536 verschiedene Fernbedienungen verwalten und 4.294.967.296 verschiedene oder 32 gleichzeitige Befehle verarbeiten (die Interpretation ist der Anwendung / dem Benutzer überlassen).
 
 # Installation
 
