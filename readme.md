@@ -16,7 +16,7 @@ Messages are sent as Bluetooth advertisement packets - no active connection or p
 - Rolling code: Each message is provided with a rolling code to prevent replay attacks.
 
 ## One receiver - multiple senders
-A receiver can (theoretically) manage up to 65536 different remote controls and process 65536 different commands.
+A receiver can (theoretically) manage up to 65536 different remote controls and process 4,294,967,295 different or 32 simultaneous commands (the interpretation is left to the application / user).
 
 # Installation
 
@@ -86,7 +86,7 @@ BLERemoteControlSender sender;
 ### Sending commands
 
 The function `send_command` is used to send commands.
-The function is passed the command code to be sent of type `uint16_t` in the first parameter.
+The function is passed the command code to be sent of type `uint32_t` in the first parameter.
 In the second parameter, a ***pointer*** to the remote control of type `ble_remote_control_info_t` is passed.
 
 Example: Sending the command code "0x1234" with the previously created remote control
