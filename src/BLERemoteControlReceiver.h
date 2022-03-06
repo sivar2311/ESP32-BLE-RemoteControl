@@ -105,16 +105,13 @@ void BLERemoteControlReceiver::onResult(NimBLEAdvertisedDevice* advertised_devic
 
     decrypt_message(&message, manufacturer_data->encrypted_message, remote_control->aes_key.data());
 
-    if (message.remote_id != manufacturer_data->remote_id) {
-        ble_scan->clearResults();
-        return;
-    }
+    if (message.remote_id != manufacturer_data->remote_id) return ble_scan->clearResults();
 
     if (_sync) {
         _sync                        = false;
         remote_control->rolling_code = message.rolling_code - 1;
         if (sync_done_callback) sync_done_callback(remote_control);
-        return;
+        return ble_scan->clearResults();
     }
 
     if (message.rolling_code > remote_control->rolling_code) {
