@@ -60,10 +60,6 @@ void BLERemoteControlReceiver::begin() {
 }
 
 void BLERemoteControlReceiver::add_remote_control(ble_remote_control_info_t* remote_control) {
-    if (remote_control->aes_key.size() != 16) {
-        log_e("aes keylength is not equal 16!");
-        return;
-    }
     remote_controls.push_back(remote_control);
 }
 
@@ -103,7 +99,7 @@ void BLERemoteControlReceiver::onResult(NimBLEAdvertisedDevice* advertised_devic
 
     BLERemoteControlMessage message;
 
-    decrypt_message(&message, manufacturer_data->encrypted_message, remote_control->aes_key.data());
+    decrypt_message(&message, manufacturer_data->encrypted_message, remote_control->aes_key);
 
     if (message.remote_id != manufacturer_data->remote_id) return ble_scan->clearResults();
 

@@ -32,7 +32,7 @@ void BLERemoteControlSender::send_command(uint32_t command, ble_remote_control_i
     message.rolling_code = remote_control->rolling_code++;
     message.nonce        = random(0xFFFF);
 
-    encrypt_message(man_data.encrypted_message, &message, remote_control->aes_key.data());
+    encrypt_message(man_data.encrypted_message, &message, remote_control->aes_key);
 
     ble_advertising->stop();
     ble_advertising->setManufacturerData(std::string((const char*)&man_data, sizeof(BLEManufacturerData)));
