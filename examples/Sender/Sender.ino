@@ -37,7 +37,7 @@ void handle_buttons() {
 
     if (button_on == PRESSED) sender.send_command(COMMAND_LED_ON, storage[0]);
     if (button_off == PRESSED) sender.send_command(COMMAND_LED_OFF, storage[0]);
-    if (button_sync == PRESSED) sender.start_sync(storage[0]);
+    if (button_sync == PRESSED) sender.start_sync(*(storage[0]));
 
     if (button_on == PRESSED || button_off == PRESSED || button_sync == PRESSED) {
         delay(150); // simple "debounce"
