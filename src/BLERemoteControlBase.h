@@ -1,13 +1,16 @@
 #pragma once
 
 #include <Arduino.h>
+#include <mbedtls/aes.h>
 #include <stdint.h>
 
 #include <algorithm>
 #include <vector>
 
 #include "BLERemoteControlInfo.h"
-#include <mbedtls/aes.h>
+
+const char* remote_control_service_uuid        = "6b275c4b-adfc-457f-a89a-441ce79a3921";
+const char* remote_control_characteristic_uuid = "fd8554ed-2518-4ccf-8709-e13be9bb614b";
 
 struct __attribute__((packed)) BLERemoteControlMessage {
     uint16_t remote_id;
