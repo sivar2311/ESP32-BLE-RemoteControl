@@ -5,8 +5,11 @@
 
 #include "BLERemoteControlBase.h"
 #include "BLERemoteControlInfo.h"
+#include "BLERemoteControlStorage.h"
 
 struct ble_remote_command_info_t {
+    ble_remote_command_info_t(uint32_t command, ble_remote_control_info_t* remote_control)
+        : command(command), remote_control(remote_control) {}
     uint32_t                   command;
     ble_remote_control_info_t* remote_control;
 };
@@ -14,118 +17,206 @@ struct ble_remote_command_info_t {
 using ble_receive_callback_t     = std::function<void(ble_remote_command_info_t*)>;
 using ble_remote_sync_callback_t = std::function<void(ble_remote_control_info_t*)>;
 
-class BLERemoteControlReceiver : public BLERemoteControlBaseClass, public NimBLEAdvertisedDeviceCallbacks {
+class BLERemoteControlReceiver : public BLERemoteControlBaseClass, public NimBLEAdvertisedDeviceCallbacks, public NimBLEClientCallbacks {
   public:
     BLERemoteControlReceiver();
     ~BLERemoteControlReceiver();
-    void begin();
 
-    void add_remote_control(ble_remote_control_info_t* remote_control);
-    void remove_remote_control(ble_remote_control_info_t* remote_control);
-
+    void begin(BLERemoteControlStorage* storage = nullptr);
     void on_command(ble_receive_callback_t callback);
 
-    void sync_remotecontrol();
-    void on_sync(ble_remote_sync_callback_t callback);
+    void start_synchronizing();
+    void stop_synchronizing();
+    bool is_synchronizing();
+    void on_synchronize(ble_remote_sync_callback_t callback);
+
+    void set_sync_pin(uint32_t pin);
 
   protected:
-    void                       onResult(NimBLEAdvertisedDevice* advertised_device);
-    ble_remote_control_info_t* find_remote_control_by_id(uint16_t id);
+    void onResult(NimBLEAdvertisedDevice* advertised_device);
+
+    void process_manufacturer_data(BLEManufacturerData* data);
+    void process_command(BLERemoteControlMessage* message, ble_remote_control_info_t* remote_control);
+    bool check_rolling_code(BLERemoteControlMessage* message, ble_remote_control_info_t* remote_control);
+
+    void process_service(NimBLEAdvertisedDevice* advertised_device);
+    void synchronize_device(NimBLEAddress* address);
+
+    uint32_t onPassKeyRequest();
+
+    BLERemoteControlStorage* get_storage();
+
+    static void synchronize_task(void* vParams);
 
   protected:
-    NimBLEScan*                             ble_scan = nullptr;
-    std::vector<ble_remote_control_info_t*> remote_controls;
+    NimBLEScan*              ble_scan = nullptr;
+    BLERemoteControlStorage* _storage;
 
-    ble_receive_callback_t     receive_callback;
-    ble_remote_sync_callback_t sync_done_callback;
+    ble_receive_callback_t     receive_callback   = nullptr;
+    ble_remote_sync_callback_t sync_done_callback = nullptr;
 
     bool _sync = false;
+
+    NimBLEAddress* sync_device_address;
+
+    uint32_t sync_pin = 123456;
 };
 
 BLERemoteControlReceiver::BLERemoteControlReceiver() {}
-
 BLERemoteControlReceiver::~BLERemoteControlReceiver() {}
 
-void BLERemoteControlReceiver::begin() {
+void BLERemoteControlReceiver::begin(BLERemoteControlStorage* storage) {
+    this->_storage = storage;
+
     NimBLEDevice::setScanDuplicateCacheSize(10);
     NimBLEDevice::init("");
+    NimBLEDevice::setSecurityAuth(true, true, true);
+    NimBLEDevice::setSecurityIOCap(BLE_HS_IO_KEYBOARD_ONLY);
 
     ble_scan = NimBLEDevice::getScan();
-    ble_scan->setAdvertisedDeviceCallbacks(this, false);
+    ble_scan->setAdvertisedDeviceCallbacks(this, true);
     ble_scan->setActiveScan(false);
     ble_scan->setInterval(20);
     ble_scan->setWindow(10);
     ble_scan->setMaxResults(0);
+    ble_scan->setDuplicateFilter(false);
     ble_scan->start(0, nullptr, false);
-}
 
-void BLERemoteControlReceiver::add_remote_control(ble_remote_control_info_t* remote_control) {
-    remote_controls.push_back(remote_control);
-}
-
-void BLERemoteControlReceiver::remove_remote_control(ble_remote_control_info_t* remote_control) {
-    if (remote_control == nullptr) return;
-    remote_controls.erase(std::remove(remote_controls.begin(), remote_controls.end(), remote_control), remote_controls.end());
+    xTaskCreate(synchronize_task, "sync", 2048, (void*)this, tskIDLE_PRIORITY + 1, nullptr);
 }
 
 void BLERemoteControlReceiver::on_command(ble_receive_callback_t callback) {
     receive_callback = callback;
 }
 
-void BLERemoteControlReceiver::sync_remotecontrol() {
-    _sync = true;
-}
+void BLERemoteControlReceiver::start_synchronizing() { _sync = true; };
 
-void BLERemoteControlReceiver::on_sync(ble_remote_sync_callback_t callback) {
+void BLERemoteControlReceiver::stop_synchronizing() { _sync = false; };
+
+bool BLERemoteControlReceiver::is_synchronizing() { return _sync; }
+
+void BLERemoteControlReceiver::on_synchronize(ble_remote_sync_callback_t callback) {
     sync_done_callback = callback;
 }
 
 void BLERemoteControlReceiver::onResult(NimBLEAdvertisedDevice* advertised_device) {
-    std::string raw_data = advertised_device->getManufacturerData();
+    BLERemoteControlStorage* storage = get_storage();
 
-    if (raw_data.length() != sizeof(BLEManufacturerData)) return;
-    BLEManufacturerData* manufacturer_data = (BLEManufacturerData*)raw_data.data();
-
-    if (manufacturer_data->company_id != 0xFFFF) return;
-
-    auto remote_id = manufacturer_data->remote_id;
-
-    ble_remote_control_info_t* remote_control = find_remote_control_by_id(remote_id);
-
-    if (remote_control == nullptr) {
-        ble_scan->clearResults();
-        return;
+    if (advertised_device->haveManufacturerData()) {
+        if (storage != nullptr && storage->size() > 0) {
+            BLEManufacturerData manufacturer_data = advertised_device->getManufacturerData<BLEManufacturerData>();
+            if (manufacturer_data.company_id == 0xFFFF) process_manufacturer_data(&manufacturer_data);
+        }
     }
 
-    BLERemoteControlMessage message;
-
-    decrypt_message(&message, manufacturer_data->encrypted_message, remote_control->aes_key);
-
-    if (message.remote_id != manufacturer_data->remote_id) return ble_scan->clearResults();
-
-    if (_sync) {
-        _sync                        = false;
-        remote_control->rolling_code = message.rolling_code - 1;
-        if (sync_done_callback) sync_done_callback(remote_control);
-        return ble_scan->clearResults();
+    if (advertised_device->haveServiceUUID()) {
+        process_service(advertised_device);
     }
-
-    if (message.rolling_code > remote_control->rolling_code) {
-        remote_control->rolling_code = message.rolling_code;
-
-        ble_remote_command_info_t command_info;
-        command_info.command        = message.command;
-        command_info.remote_control = remote_control;
-
-        if (receive_callback) receive_callback(&command_info);
-    }
-
-    ble_scan->clearResults();
 };
 
-ble_remote_control_info_t* BLERemoteControlReceiver::find_remote_control_by_id(uint16_t id) {
-    for (auto remote_control : remote_controls) {
-        if (remote_control->id == id) return remote_control;
+void BLERemoteControlReceiver::set_sync_pin(uint32_t pin) {
+    sync_pin = pin;
+}
+
+void BLERemoteControlReceiver::process_manufacturer_data(BLEManufacturerData* data) {
+    BLERemoteControlStorage* storage = get_storage();
+
+    auto                       remote_id      = data->remote_id;
+    ble_remote_control_info_t* remote_control = storage->find(remote_id);
+    if (remote_control == nullptr) return;
+
+    BLERemoteControlMessage message;
+    decrypt_message(&message, data->encrypted_message, remote_control->aes_key);
+    if (message.remote_id != remote_id) return;
+
+    process_command(&message, remote_control);
+}
+
+void BLERemoteControlReceiver::process_command(BLERemoteControlMessage* message, ble_remote_control_info_t* remote_control) {
+    auto command = message->command;
+
+    if (check_rolling_code(message, remote_control)) {
+        if (receive_callback) {
+            ble_remote_command_info_t ci(command, remote_control);
+            receive_callback(&ci);
+        }
     }
-    return nullptr;
+}
+
+bool BLERemoteControlReceiver::check_rolling_code(BLERemoteControlMessage* message, ble_remote_control_info_t* remote_control) {
+    auto old_rolling_code = remote_control->rolling_code;
+    auto new_rolling_code = message->rolling_code;
+
+    if (new_rolling_code > old_rolling_code) {
+        remote_control->rolling_code = new_rolling_code;
+        return true;
+    }
+
+    return false;
+}
+
+void BLERemoteControlReceiver::process_service(NimBLEAdvertisedDevice* advertised_device) {
+    if (!is_synchronizing()) return;
+
+    if (advertised_device->isAdvertisingService(NimBLEUUID(remote_control_service_uuid))) {
+        sync_device_address = new NimBLEAddress(advertised_device->getAddress());
+    }
+
+    stop_synchronizing();
+}
+
+void BLERemoteControlReceiver::synchronize_device(NimBLEAddress* address) {
+    BLERemoteControlStorage* storage = get_storage();
+
+    NimBLEClient* pClient = NimBLEDevice::createClient();
+    if (!pClient) return;
+
+    pClient->setClientCallbacks(this);
+
+    if (pClient->connect(*address)) {
+        pClient->secureConnection();
+
+        NimBLERemoteService* pService = pClient->getService(NimBLEUUID(remote_control_service_uuid));
+        if (pService != nullptr) {
+            NimBLERemoteCharacteristic* pSecureCharacteristic = pService->getCharacteristic(NimBLEUUID(remote_control_characteristic_uuid));
+
+            if (pSecureCharacteristic != nullptr) {
+                ble_remote_control_info_t remote_control = pSecureCharacteristic->readValue<ble_remote_control_info_t>();
+
+                ble_remote_control_info_t* existing = storage->find(remote_control.id);
+                if (existing) {
+                    existing->rolling_code = remote_control.rolling_code;
+                    memcpy(existing->aes_key, remote_control.aes_key, sizeof(aes_key_t));
+                } else {
+                    storage->add(new ble_remote_control_info_t(remote_control), true);
+                }
+                if (sync_done_callback) sync_done_callback(&remote_control);
+            }
+
+            pClient->disconnect();
+        }
+    }
+    ble_scan->start(0, nullptr, false);
+}
+
+uint32_t BLERemoteControlReceiver::onPassKeyRequest() {
+    return sync_pin;
+}
+
+BLERemoteControlStorage* BLERemoteControlReceiver::get_storage() {
+    if (_storage == nullptr) _storage = new BLERemoteControlStorage();
+    return _storage;
+}
+
+void BLERemoteControlReceiver::synchronize_task(void* vParams) {
+    BLERemoteControlReceiver* instance = (BLERemoteControlReceiver*)vParams;
+
+    for (;;) {
+        if (instance->sync_device_address != nullptr) {
+            instance->synchronize_device(instance->sync_device_address);
+            delete instance->sync_device_address;
+            instance->sync_device_address = nullptr;
+        }
+        vTaskDelay(1);
+    }
 }
