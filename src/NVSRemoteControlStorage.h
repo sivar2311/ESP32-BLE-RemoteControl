@@ -4,47 +4,63 @@
 
 #include "BLERemoteControlStorage.h"
 
-const char* storage_key_name_size = "size";
-
-class NVSRemoteControlStorage : public BLERemoteControlStorage, protected Preferences {
+class NVSRemoteControlStorage : public BLERemoteControlStorage {
   public:
-    using Preferences::begin;
-    using Preferences::clear;
-    using Preferences::end;
+    void begin(const char* name, const char* partition_label = nullptr);
+    void clear();
+    void end();
 
-    bool load();
-    void save();
+    void                       save(const ble_remote_control_info_t* remote_control) override;
+    ble_remote_control_info_t* load(uint16_t id, ble_remote_control_info_t* remote_control) override;
+    bool                       exist(uint16_t id) override;
+    void                       remove(uint16_t id) override;
 
-    void remove(ble_remote_control_info_t* remote_control);
+  protected:
+    typedef char nvs_key_t[5];
+    const char*  make_key(const uint16_t id, nvs_key_t key);
+
+  protected:
+    Preferences preferences;
 };
 
-bool NVSRemoteControlStorage::load() {
-    uint16_t size = getUShort(storage_key_name_size, 0);
-    if (size == 0) return false;
-
-    for (size_t i = 0; i < size; i++) {
-        ble_remote_control_info_t* rc = new ble_remote_control_info_t(i, false);
-        char                       key[5];
-        sprintf(key, "%4x", i);
-        getBytes((const char*)key, rc, sizeof(ble_remote_control_info_t));
-        add(rc, true);
-    }
-
-    return true;
+void NVSRemoteControlStorage::begin(const char* name, const char* partition_label) {
+    preferences.begin(name, false, partition_label);
 }
 
-void NVSRemoteControlStorage::save() {
-    putUShort(storage_key_name_size, remote_controls.size());
-
-    for (size_t i = 0; i < remote_controls.size(); i++) {
-        char key[5];
-        sprintf(key, "%4x", i);
-        putBytes((const char*)key, remote_controls[i]->remote_control, sizeof(ble_remote_control_info_t));
-    }
+void NVSRemoteControlStorage::clear() {
+    preferences.clear();
 }
 
-void NVSRemoteControlStorage::remove(ble_remote_control_info_t* remote_control) {
-    BLERemoteControlStorage::remove(remote_control);
-    Preferences::clear();
-    save();
+void NVSRemoteControlStorage::end() {
+    preferences.end();
+}
+
+void NVSRemoteControlStorage::save(const ble_remote_control_info_t* remote_control) {
+    nvs_key_t key;
+    preferences.putBytes(make_key(remote_control->id, key), remote_control, sizeof(ble_remote_control_info_t));
+}
+
+ble_remote_control_info_t* NVSRemoteControlStorage::load(uint16_t id, ble_remote_control_info_t* remote_control) {
+    nvs_key_t key;
+    if (!exist(id)) return nullptr;
+
+    size_t    size = preferences.getBytes(make_key(id, key), remote_control, sizeof(ble_remote_control_info_t));
+    if (size == 0) return nullptr;
+
+    return remote_control;
+}
+
+bool NVSRemoteControlStorage::exist(uint16_t id) {
+    nvs_key_t key;
+    return preferences.isKey(make_key(id, key));
+}
+
+void NVSRemoteControlStorage::remove(uint16_t id) {
+    nvs_key_t key;
+    preferences.remove(make_key(id, key));
+}
+
+const char* NVSRemoteControlStorage::make_key(const uint16_t id, nvs_key_t key) {
+    snprintf(key, sizeof(nvs_key_t), "%04x", id);
+    return key;
 }

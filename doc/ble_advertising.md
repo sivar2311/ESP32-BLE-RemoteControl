@@ -5,7 +5,7 @@
 | Name:     | BLE advertisement flags | length of the<br>next field | type of the<br>next field     | Manufacturer<br>data |
 |----------:|:-----------------------:|:---------------------------:|:-----------------------------:|:--------------------:|
 | *Length*: | 3 Bytes                 | 1 Byte                      | 1 Byte                        | 20 Bytes             |
-| *Value*: | `0x02` `0x01` `0x06`    | `0x15`                      | `0xFF`<br>(manufacturer data) | [Data](#data)        |
+| *Value*:  | `0x02` `0x01` `0x06`    | `0x15`                      | `0xFF`<br>(manufacturer data) | [Data](#data)        |
 |           | **fixed**               | **fixed**<br>               | **fixed**                     | *variable*           |
 
 **Note:**
