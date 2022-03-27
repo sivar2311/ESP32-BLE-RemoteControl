@@ -43,8 +43,7 @@ void setup_storage() {
     storage.begin("ble_remote");
 
     if (storage.exist(UNIQUE_REMOTE_ID) == false) {
-        storage.add(new ble_remote_control_info_t(UNIQUE_REMOTE_ID, true));
-        storage.save();
+        storage.save(new ble_remote_control_info_t(UNIQUE_REMOTE_ID, true));
     }
 }
 
