@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        example: [examples/Receiver/SingleReceiver, examples/Receiver/MultiReceiver, examples/Sender]
+        example: [examples/Receiver, examples/Sender]
 
     steps:
 
